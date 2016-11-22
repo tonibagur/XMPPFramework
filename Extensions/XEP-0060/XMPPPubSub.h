@@ -3,7 +3,11 @@
 
 #define _XMPP_PUB_SUB_H
 
+typedef void(^PubCompletionBlock)(XMPPIQ *iq, BOOL success);
+
 @interface XMPPPubSub : XMPPModule
+
+- (NSString *) retractMessage:(NSString*)itemID fromNode:(NSString*)aNode withCompletion:(PubCompletionBlock) completion;
 
 /**
  * Returns whether or not the given message is a PubSub event message.

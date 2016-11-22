@@ -25,6 +25,10 @@
 	NSMutableDictionary *configSubDict;
 	NSMutableDictionary *createDict;
 	NSMutableDictionary *deleteDict;
+    
+    NSMutableDictionary *deleteMsg;
+    NSMutableDictionary *deleteMsgBlock;
+    
 	NSMutableDictionary *configNodeDict;
 	NSMutableDictionary *publishDict;
 	NSMutableDictionary *retrieveItemsDict;
@@ -74,6 +78,10 @@
 		configSubDict       = [[NSMutableDictionary alloc] init];
 		createDict          = [[NSMutableDictionary alloc] init];
 		deleteDict          = [[NSMutableDictionary alloc] init];
+        
+        deleteMsg           = [[NSMutableDictionary alloc] init];
+        deleteMsgBlock      = [[NSMutableDictionary alloc] init];
+        
 		configNodeDict      = [[NSMutableDictionary alloc] init];
 		publishDict         = [[NSMutableDictionary alloc] init];
 		retrieveItemsDict   = [[NSMutableDictionary alloc] init];
@@ -108,6 +116,8 @@
 	[configSubDict      removeAllObjects];
 	[createDict         removeAllObjects];
 	[deleteDict         removeAllObjects];
+    [deleteMsg          removeAllObjects];
+    [deleteMsgBlock     removeAllObjects];
 	[configNodeDict     removeAllObjects];
 	[publishDict        removeAllObjects];
 	[retrieveItemsDict  removeAllObjects];
@@ -350,6 +360,25 @@
 		[createDict removeObjectForKey:elementID];
 		return YES;
 	}
+    else if ((node = deleteMsg[elementID]))
+    {
+        BOOL succes = NO;
+        if ([[iq type] isEqualToString:@"result"]) succes = YES;
+        
+        PubCompletionBlock completion = deleteMsgBlock[elementID];
+        if (completion) {
+            completion(iq, succes);
+        }
+        else {
+            completion(iq, NO);
+        }
+        
+        [deleteMsg removeObjectForKey:elementID];
+        [deleteMsgBlock removeObjectForKey:elementID];
+        
+        return YES;
+        
+    }
 	else if ((node = deleteDict[elementID]))
 	{
 		// Example delete success response:
@@ -540,6 +569,41 @@
 - (NSString *)subscribeToNode:(NSString *)node withJID:(XMPPJID *)myBareOrFullJid
 {
 	return [self subscribeToNode:node withJID:myBareOrFullJid options:nil];
+}
+
+- (NSString *) retractMessage:(NSString*)itemID fromNode:(NSString*)aNode withCompletion:(PubCompletionBlock) completion
+{
+    if (aNode == nil) return nil;
+    
+    NSString *node = [aNode copy];
+    
+    // Generate uuid and add to dict
+    NSString *uuid = [xmppStream generateUUID];
+    dispatch_async(moduleQueue, ^{
+        deleteMsg[uuid] = node;
+        deleteMsgBlock[uuid] = completion;
+    });
+    
+    
+    NSXMLElement *retract = [NSXMLElement elementWithName:@"retract"];
+    [retract addAttributeWithName:@"node" stringValue:node];
+    [retract addAttributeWithName:@"notify" boolValue:YES];
+    
+    NSXMLElement *item = [NSXMLElement elementWithName:@"item"];
+    [item addAttributeWithName:@"id" stringValue:itemID];
+    [retract addChild:item];
+    
+    
+    NSXMLElement *pubsub = [NSXMLElement elementWithName:@"pubsub" xmlns:XMLNS_PUBSUB];
+    [pubsub addChild:retract];
+    
+    
+    XMPPIQ *iq = [XMPPIQ iqWithType:@"set" to:serviceJID elementID:uuid];
+    [iq addChild:pubsub];
+    
+    [xmppStream sendElement:iq];
+    return uuid;
+    
 }
 
 - (NSString *)subscribeToNode:(NSString *)aNode withJID:(XMPPJID *)myBareOrFullJid options:(NSDictionary *)options
