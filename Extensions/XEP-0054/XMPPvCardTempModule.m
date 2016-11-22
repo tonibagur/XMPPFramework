@@ -36,6 +36,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @implementation XMPPvCardTempModule
+{
+    NSMutableDictionary *dicCompletions;
+}
 
 @synthesize xmppvCardTempModuleStorage = _xmppvCardTempModuleStorage;
 
@@ -83,6 +86,8 @@
 	if ([super activate:aXmppStream])
 	{
 		// Custom code goes here (if needed)
+
+        dicCompletions = [[NSMutableDictionary alloc] init];
 		
         _myvCardTracker = [[XMPPIDTracker alloc] initWithStream:xmppStream dispatchQueue:moduleQueue];
 
@@ -100,6 +105,9 @@
 		
 		[_myvCardTracker removeAllIDs];
 		_myvCardTracker = nil;
+        
+        [dicCompletions removeAllObjects];
+
 		
 	}};
 	
@@ -123,6 +131,28 @@
 - (void)fetchvCardTempForJID:(XMPPJID *)jid
 {
 	return [self fetchvCardTempForJID:jid ignoreStorage:NO];
+}
+
+
+//- (void)fetchvCardTempForJID:(XMPPJID *)jid ignoreStorage:(BOOL)ignoreStorage withCompletion:(VcardCompletionBlock)completion
+- (void) getVCardForJidString:(NSString*)jidString withCompletion:(VCardCompletionBlock)completion
+{
+    
+    dispatch_block_t block = ^{ @autoreleasepool {
+        
+        XMPPJID * jid = [XMPPJID jidWithString:jidString];
+        
+        if ([_xmppvCardTempModuleStorage shouldFetchvCardTempForJID:jid xmppStream:xmppStream])
+        {
+            [self _fetchvCardTempForJID:jid withCompletion:completion];
+        }
+        
+    }};
+    
+    if (dispatch_get_specific(moduleQueueTag))
+    block();
+    else
+    dispatch_async(moduleQueue, block);
 }
 
 - (void)fetchvCardTempForJID:(XMPPJID *)jid ignoreStorage:(BOOL)ignoreStorage
@@ -219,16 +249,46 @@
 		XMPPLogVerbose(@"%@: %s %@", THIS_FILE, __PRETTY_FUNCTION__, [jid bare]);
 		
 		[_xmppvCardTempModuleStorage setvCardTemp:vCardTemp forJID:jid xmppStream:xmppStream];
-		
-		[(id <XMPPvCardTempModuleDelegate>)multicastDelegate xmppvCardTempModule:self
-		                                                     didReceivevCardTemp:vCardTemp
-		                                                                  forJID:jid];
-	}};
+        BOOL needsNormal = YES;
+        
+        NSString *idQuery = [vCardTemp attributeStringValueForName:@"id"];
+        if (idQuery) {
+            if (dicCompletions[idQuery]) {
+                VCardCompletionBlock auxBlock = (VCardCompletionBlock)dicCompletions[idQuery];
+                [dicCompletions removeObjectForKey:idQuery];
+                if (auxBlock) {
+                    needsNormal = NO;
+                    auxBlock(vCardTemp, jid);
+                }
+            }
+        }
+        
+        if (needsNormal)
+        {
+            
+            [(id <XMPPvCardTempModuleDelegate>)multicastDelegate xmppvCardTempModule:self
+                                                                 didReceivevCardTemp:vCardTemp
+                                                                              forJID:jid];
+        }
+    }};
 	
 	if (dispatch_get_specific(moduleQueueTag))
 		block();
 	else
 		dispatch_async(moduleQueue, block);
+}
+
+- (void)_fetchvCardTempForJID:(XMPPJID *)jid withCompletion:(VCardCompletionBlock)completion
+{
+    if(!jid) return;
+    
+    NSString *udid = [XMPPStream generateUUID];
+    
+    if (completion) {
+        dicCompletions[udid] = completion;
+    }
+    
+      [xmppStream sendElement:[XMPPvCardTemp iqvCardRequestForJID:jid withElementID:udid]];
 }
 
 - (void)_fetchvCardTempForJID:(XMPPJID *)jid{
