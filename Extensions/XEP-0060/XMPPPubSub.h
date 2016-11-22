@@ -4,6 +4,8 @@
 #define _XMPP_PUB_SUB_H
 
 typedef void(^PubCompletionBlock)(XMPPIQ *iq, BOOL success);
+typedef void(^PubPublishNodeCompletionBlock)(NSString *node, XMPPIQ *iq, BOOL success);
+
 
 @interface XMPPPubSub : XMPPModule
 
