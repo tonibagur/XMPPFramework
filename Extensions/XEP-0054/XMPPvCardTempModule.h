@@ -13,6 +13,8 @@
 @class XMPPvCardTemp;
 @class XMPPIDTracker;
 
+typedef void(^VCardCompletionBlock)(XMPPvCardTemp *vCardTemp, XMPPJID *jid);
+
 #define _XMPP_VCARD_TEMP_MODULE_H
 
 @protocol XMPPvCardTempModuleStorage;
@@ -36,10 +38,22 @@
 **/
 - (void)fetchvCardTempForJID:(XMPPJID *)jid;
 
+
+
 /**
  * Fetches the vCardTemp for the given JID, optionally ignoring the storage
 **/
 - (void)fetchvCardTempForJID:(XMPPJID *)jid ignoreStorage:(BOOL)ignoreStorage;
+
+/**
+ *  access to VCARD with completion
+ *
+ *  @param jidString  jidString
+ *  @param completion completion
+ */
+- (void) getVCardForJidString:(NSString*)jidString withCompletion:(VCardCompletionBlock)completion;
+
+
 
 /**
  * Returns the vCardTemp for the given JID, this is the equivalent of calling the vCardTempForJID:xmppStream: on the moduleStorage

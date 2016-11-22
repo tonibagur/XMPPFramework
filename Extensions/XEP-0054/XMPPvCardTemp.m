@@ -74,6 +74,7 @@ NSString *const kXMPPvCardTempElement = @"vCard";
 		NSXMLElement *query = [iq elementForName:kXMPPvCardTempElement xmlns:kXMPPNSvCardTemp];
 		if (query)
 		{
+            [query addAttributeWithName:@"id" stringValue:iq.elementID];
 			return [self vCardTempFromElement:query];
 		}
 	}
@@ -86,7 +87,13 @@ NSString *const kXMPPvCardTempElement = @"vCard";
 	return [[self vCardTempSubElementFromIQ:iq] copy];
 }
 
-
++ (XMPPIQ *)iqvCardRequestForJID:(XMPPJID *)jid withElementID:(NSString*)elementID {
+    XMPPIQ *iq = [XMPPIQ iqWithType:@"get" to:[jid bareJID] elementID:elementID];
+    NSXMLElement *vCardElem = [NSXMLElement elementWithName:kXMPPvCardTempElement xmlns:kXMPPNSvCardTemp];
+    
+    [iq addChild:vCardElem];
+    return iq;
+}
 + (XMPPIQ *)iqvCardRequestForJID:(XMPPJID *)jid {
   XMPPIQ *iq = [XMPPIQ iqWithType:@"get" to:[jid bareJID] elementID:[XMPPStream generateUUID]];
   NSXMLElement *vCardElem = [NSXMLElement elementWithName:kXMPPvCardTempElement xmlns:kXMPPNSvCardTemp];
