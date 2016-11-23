@@ -1096,13 +1096,13 @@
 	return uuid;
 }
 
-- (NSString *)retrieveItemsFromNode:(NSString *)node WithMaxItem:(NSString*)maxItem
+- (NSString *)retrieveItemsFromNode:(NSString *)node withMaxItem:(NSString*)maxItem
 
 {
-    return [self retrieveItemsFromNode:node withItemIDs:nil WithMaxItem:maxItem];
+    return [self retrieveItemsFromNode:node withItemIDs:nil withMaxItem:maxItem];
 }
 
-- (NSString *)retrieveItemsFromNode:(NSString *)node withItemIDs:(NSArray *)itemIds WithMaxItem:(NSString*)maxItem
+- (NSString *)retrieveItemsFromNode:(NSString *)node withItemIDs:(NSArray *)itemIds withMaxItem:(NSString*)maxItem
 {
     if (node == nil) return nil;
     
