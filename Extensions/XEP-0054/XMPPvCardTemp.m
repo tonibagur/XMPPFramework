@@ -119,7 +119,7 @@ NSString *const kXMPPvCardTempElement = @"vCard";
     XMPP_VCARD_SET_STRING_CHILD(youtube, kCustomFieldYoutube);
 }
 
-- (void) setIsVida:(BOOL *)isVida
+- (void) setIsVida:(BOOL)isVida
 {
     NSString *vida = @"0";
     if (isVida) vida = @"1";
