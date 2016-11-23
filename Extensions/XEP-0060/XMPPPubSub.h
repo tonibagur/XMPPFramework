@@ -337,7 +337,9 @@ typedef void(^PubPublishNodeCompletionBlock)(NSString *node, XMPPIQ *iq, BOOL su
  * @see xmppPubSub:didRetrieveItems:fromNode:
  * @see xmppPubSub:didNotRetrieveItems:fromNode:
  **/
-- (NSString *)retrieveItemsFromNode:(NSString *)node;
+
+- (NSString *)retrieveItemsFromNode:(NSString *)node WithMaxItem:(NSString*)maxItem;
+
 - (NSString *)retrieveItemsFromNode:(NSString *)node withItemIDs:(NSArray *)itemIds;
 
 @end

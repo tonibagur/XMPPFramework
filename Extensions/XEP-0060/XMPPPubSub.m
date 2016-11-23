@@ -1096,12 +1096,13 @@
 	return uuid;
 }
 
-- (NSString *)retrieveItemsFromNode:(NSString *)node
+- (NSString *)retrieveItemsFromNode:(NSString *)node WithMaxItem:(NSString*)maxItem
+
 {
-    return [self retrieveItemsFromNode:node withItemIDs:nil];
+    return [self retrieveItemsFromNode:node withItemIDs:nil WithMaxItem:maxItem];
 }
 
-- (NSString *)retrieveItemsFromNode:(NSString *)node withItemIDs:(NSArray *)itemIds
+- (NSString *)retrieveItemsFromNode:(NSString *)node withItemIDs:(NSArray *)itemIds WithMaxItem:(NSString*)maxItem
 {
     if (node == nil) return nil;
     
@@ -1131,8 +1132,16 @@
         }
     }
     
+
+    
     NSXMLElement *pubsub = [NSXMLElement elementWithName:@"pubsub" xmlns:XMLNS_PUBSUB];
     [pubsub addChild:items];
+
+    if (maxItem) {
+        NSXMLElement *set = [NSXMLElement elementWithName:@"set" xmlns:@"http://jabber.org/protocol/rsm'"];
+        [set addChild:[NSXMLElement elementWithName:@"max" stringValue:maxItem]];
+        [pubsub addChild:set];
+    }
     
     XMPPIQ *iq = [XMPPIQ iqWithType:@"get" to:serviceJID elementID:uuid];
     [iq addChild:pubsub];
