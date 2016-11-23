@@ -26,6 +26,10 @@
 NSString *const kXMPPNSvCardTemp = @"vcard-temp";
 NSString *const kXMPPvCardTempElement = @"vCard";
 
+#define kCustomFieldGender @"GENDER"
+#define kCustomFieldVida @"VIDA"
+#define kCustomFieldYoutube @"YOUTUBE"
+
 
 @implementation XMPPvCardTemp
 
@@ -104,6 +108,55 @@ NSString *const kXMPPvCardTempElement = @"vCard";
 
 
 #pragma mark -
+#pragma mark CUSTOM QBIT Identification Types
+- (NSString*)youtube
+{
+    return  [[self elementForName:kCustomFieldYoutube] stringValue];
+}
+
+- (void) setYoutube:(NSString *)youtube
+{
+    XMPP_VCARD_SET_STRING_CHILD(youtube, kCustomFieldYoutube);
+}
+
+- (void) setIsVida:(BOOL *)isVida
+{
+    NSString *vida = @"0";
+    if (isVida) vida = @"1";
+    
+    XMPP_VCARD_SET_STRING_CHILD(vida, kCustomFieldVida);
+}
+
+- (BOOL*)isVida
+{
+    BOOL newVida = NO;
+    NSXMLElement *elem = [[self elementForName:kCustomFieldVida] stringValue];
+    if (elem != nil) {
+        newVida = [[self elementForName:kCustomFieldVida] stringValueAsBool];
+    }
+    
+    return newVida;
+}
+
+- (void) setGender:(NSInteger)gender
+{
+    NSString *value = [NSString stringWithFormat:@"%d",gender];
+    
+    XMPP_VCARD_SET_STRING_CHILD(value, kCustomFieldGender);
+    
+}
+
+- (NSInteger)gender
+{
+    NSInteger newGender = 0;
+    NSXMLElement *elem = [[self elementForName:kCustomFieldGender] stringValue];
+    if (elem != nil) {
+        newGender = [[self elementForName:kCustomFieldGender] stringValueAsNSInteger];
+    }
+    return newGender;
+    
+}
+
 #pragma mark Identification Types
 
 
