@@ -29,6 +29,7 @@ NSString *const kXMPPvCardTempElement = @"vCard";
 #define kCustomFieldGender @"GENDER"
 #define kCustomFieldVida @"VIDA"
 #define kCustomFieldYoutube @"YOUTUBE"
+#define kCustomFieldURLPhoto @"PHOTOURL"
 
 
 @implementation XMPPvCardTemp
@@ -109,6 +110,16 @@ NSString *const kXMPPvCardTempElement = @"vCard";
 
 #pragma mark -
 #pragma mark CUSTOM QBIT Identification Types
+- (NSString*)photoURL
+{
+      return  [[self elementForName:kCustomFieldURLPhoto] stringValue];
+}
+
+- (void)setPhotoURL:(NSString *)photoURL
+{
+       XMPP_VCARD_SET_STRING_CHILD(photoURL, kCustomFieldURLPhoto);
+}
+
 - (NSString*)youtube
 {
     return  [[self elementForName:kCustomFieldYoutube] stringValue];

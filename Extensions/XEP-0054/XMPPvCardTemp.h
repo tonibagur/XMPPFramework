@@ -75,6 +75,7 @@ extern NSString *const kXMPPvCardTempElement;
 @property (nonatomic, assign) NSInteger gender;  //0: Uknow 1: Male  2:Female
 @property (nonatomic, assign) BOOL isVida;
 @property (nonatomic, strong) NSString *youtube;
+@property (nonatomic, strong) NSString *photoURL;
 
 
 /*
