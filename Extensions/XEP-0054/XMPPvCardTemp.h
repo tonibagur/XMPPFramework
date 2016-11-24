@@ -70,6 +70,15 @@ extern NSString *const kXMPPvCardTempElement;
 @property (nonatomic, strong) NSString *orgName;
 
 /*
+ *  CUSTOM FIELDS
+ */
+@property (nonatomic, assign) NSInteger gender;  //0: Uknow 1: Male  2:Female
+@property (nonatomic, assign) BOOL isVida;
+@property (nonatomic, strong) NSString *youtube;
+@property (nonatomic, strong) NSString *photoURL;
+
+
+/*
  * ORGUNITs can only be set if there is already an ORGNAME. Otherwise, changes are ignored.
  */
 @property (nonatomic, strong) NSArray *orgUnits;

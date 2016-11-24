@@ -31,6 +31,7 @@
     
 	NSMutableDictionary *configNodeDict;
 	NSMutableDictionary *publishDict;
+    NSMutableDictionary *publishDictBlock;
 	NSMutableDictionary *retrieveItemsDict;
 }
 
@@ -84,6 +85,7 @@
         
 		configNodeDict      = [[NSMutableDictionary alloc] init];
 		publishDict         = [[NSMutableDictionary alloc] init];
+        publishDictBlock    = [[NSMutableDictionary alloc] init];
 		retrieveItemsDict   = [[NSMutableDictionary alloc] init];
 	}
 	return self;
@@ -120,6 +122,7 @@
     [deleteMsgBlock     removeAllObjects];
 	[configNodeDict     removeAllObjects];
 	[publishDict        removeAllObjects];
+    [publishDictBlock    removeAllObjects];
 	[retrieveItemsDict  removeAllObjects];
 	
 	if (serviceJID == nil) {
@@ -329,14 +332,41 @@
 		//   </error>
 		// </iq>
 		
-		if ([[iq type] isEqualToString:@"result"])
-			[multicastDelegate xmppPubSub:self didPublishToNode:node withResult:iq];
-		else
-			[multicastDelegate xmppPubSub:self didNotPublishToNode:node withError:iq];
-		
-		[publishDict removeObjectForKey:elementID];
-		return YES;
-	}
+
+        PubPublishNodeCompletionBlock completion = nil;
+        
+        if (publishDictBlock[elementID])
+        {
+            completion = (PubPublishNodeCompletionBlock) publishDictBlock[elementID];
+        }
+        
+        
+        if ([[iq type] isEqualToString:@"result"])
+        {
+            if (completion) {
+                completion(node, iq, YES);
+            }
+            else {
+                [multicastDelegate xmppPubSub:self didPublishToNode:node withResult:iq];
+            }
+        }
+        else
+        {
+            if (completion) {
+                completion(node, iq, NO);
+            }
+            else {
+                [multicastDelegate xmppPubSub:self didNotPublishToNode:node withError:iq];
+            }
+        }
+        
+        [publishDict removeObjectForKey:elementID];
+        if (completion) {
+            [publishDictBlock removeObjectForKey:elementID];
+        }
+        
+        return YES;
+    }
 	else if ((node = createDict[elementID]))
 	{
 		// Example create success response:
@@ -1061,16 +1091,18 @@
 	
 	dispatch_async(moduleQueue, ^{
 		publishDict[uuid] = node;
+#warning OJO FALTA AÑADIR EL BLOQUE
 	});
 	return uuid;
 }
 
-- (NSString *)retrieveItemsFromNode:(NSString *)node
+- (NSString *)retrieveItemsFromNode:(NSString *)node withMaxItem:(NSString*)maxItem
+
 {
-    return [self retrieveItemsFromNode:node withItemIDs:nil];
+    return [self retrieveItemsFromNode:node withItemIDs:nil withMaxItem:maxItem];
 }
 
-- (NSString *)retrieveItemsFromNode:(NSString *)node withItemIDs:(NSArray *)itemIds
+- (NSString *)retrieveItemsFromNode:(NSString *)node withItemIDs:(NSArray *)itemIds withMaxItem:(NSString*)maxItem
 {
     if (node == nil) return nil;
     
@@ -1100,8 +1132,16 @@
         }
     }
     
+
+    
     NSXMLElement *pubsub = [NSXMLElement elementWithName:@"pubsub" xmlns:XMLNS_PUBSUB];
     [pubsub addChild:items];
+
+    if (maxItem) {
+        NSXMLElement *set = [NSXMLElement elementWithName:@"set" xmlns:@"http://jabber.org/protocol/rsm'"];
+        [set addChild:[NSXMLElement elementWithName:@"max" stringValue:maxItem]];
+        [pubsub addChild:set];
+    }
     
     XMPPIQ *iq = [XMPPIQ iqWithType:@"get" to:serviceJID elementID:uuid];
     [iq addChild:pubsub];

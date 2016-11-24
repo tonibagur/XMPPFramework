@@ -4,6 +4,8 @@
 #define _XMPP_PUB_SUB_H
 
 typedef void(^PubCompletionBlock)(XMPPIQ *iq, BOOL success);
+typedef void(^PubPublishNodeCompletionBlock)(NSString *node, XMPPIQ *iq, BOOL success);
+
 
 @interface XMPPPubSub : XMPPModule
 
@@ -335,7 +337,9 @@ typedef void(^PubCompletionBlock)(XMPPIQ *iq, BOOL success);
  * @see xmppPubSub:didRetrieveItems:fromNode:
  * @see xmppPubSub:didNotRetrieveItems:fromNode:
  **/
-- (NSString *)retrieveItemsFromNode:(NSString *)node;
+
+- (NSString *)retrieveItemsFromNode:(NSString *)node withMaxItem:(NSString*)maxItem;
+
 - (NSString *)retrieveItemsFromNode:(NSString *)node withItemIDs:(NSArray *)itemIds;
 
 @end
